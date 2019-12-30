@@ -25,7 +25,8 @@ description: >- # this means to ignore newlines until "baseurl:"
   Un blog pour regrouper les trucs intéressants que je trouve ou les trucs sur lesquels je bosse
   On parle de Linux, SRE, DevOps, Système, etc
 baseurl: "" # the subpath of your site, e.g. /blog
-url: "https://zarak.fr" # the base hostname & protocol for your site, e.g. http://example.com
+url: "https://zarak.fr"
+# the base hostname & protocol for your site, e.g. http://example.com
 #twitter_username: jekyllrb
 #github_username:  jekyll
 repository: "fayak/zarakfr"
@@ -88,6 +89,15 @@ pagination:
   permalink: /page//:num/
   sort_field: 'date'
   sort_reverse: true
+
+footer:
+  links:
+    - label: "Blog de Sayrus"
+      url: "https://sayr.us/"
+      icon: "https://sayr.us/favicon.ico"
+    - label: "Source du blog"
+      url: "https://github.com/fayak/zarakfr/"
+      icon: "fab fa-fw fa-github"
 
 timezone: Europe/Paris
 defaults:
