@@ -118,6 +118,7 @@ DEPENDENCIES
   jekyll (~> 4.0.0)
   jekyll-feed (~> 0.12)
   jekyll-paginate-v2
+  jekyll-sitemap
   jemoji
   minima (~> 2.5)
   minimal-mistakes-jekyll
