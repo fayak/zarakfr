@@ -82,7 +82,7 @@ permalink: /:categories/:title/
 paginate_path: /page/:num/
 pagination:
   enabled: true
-  debug: true
+  debug: false
   collection: posts
   per_page: 2
   permalink: /page//:num/
