@@ -1,0 +1,14 @@
+---
+layout: archive
+---
+
+{{ content }}
+
+<h3 class="archive__subtitle">{{ site.data.ui-text[site.locale].recent_posts | default: "Recent Posts" }}</h3>
+<br/>
+{% for post in paginator.posts %}
+  {% include archive-single.html %}
+  <div style="border-top: 1px solid #DDD; margin-bottom: 20px"> </div>
+{% endfor %}
+
+{% include paginator.html %}

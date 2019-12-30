@@ -1,5 +1,9 @@
 main:
-  - title: "Articles"
+  - title: "Tous les articles"
     url: "/"
+  - title: "Linux"
+    url: "/linux/"
+  - title: "Crypto"
+    url: "/crypto/"
   - title: "À propos"
     url: "/about"

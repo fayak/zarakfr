@@ -30,6 +30,7 @@ url: "https://zarak.fr" # the base hostname & protocol for your site, e.g. http:
 #github_username:  jekyll
 repository: "fayak/zarakfr"
 logo: "/resources/logo.png"
+locale: "fr-FR"
 
 breadcrumbs: true
 search: true
@@ -41,7 +42,7 @@ theme: minimal-mistakes-jekyll
 plugins:
   - jekyll-feed
   - jekyll-feed
-  - jekyll-paginate
+  - jekyll-paginate-v2
   - jekyll-sitemap
   - jekyll-gist
   - jemoji
@@ -60,21 +61,34 @@ markdown: kramdown
 # Excluded items can be processed by explicitly listing the directories or
 # their entries' file path in the `include:` list.
 #
-# exclude:
-#   - .sass-cache/
-#   - .jekyll-cache/
-#   - gemfiles/
-#   - Gemfile
-#   - Gemfile.lock
-#   - node_modules/
-#   - vendor/bundle/
-#   - vendor/cache/
-#   - vendor/gems/
-#   - vendor/ruby/
+exclude:
+   - .sass-cache/
+   - .jekyll-cache/
+   - gemfiles/
+   - Gemfile
+   - Gemfile.lock
+   - node_modules/
+   - vendor/bundle/
+   - vendor/cache/
+   - vendor/gems/
+   - vendor/ruby/
+
+include:
+  - _pages
+
 encoding: "utf-8"
 permalink: /:categories/:title/
-paginate: 5 # amount of posts to show
-paginate_path: /page:num/
+
+paginate_path: /page/:num/
+pagination:
+  enabled: true
+  debug: true
+  collection: posts
+  per_page: 2
+  permalink: /page//:num/
+  sort_field: 'date'
+  sort_reverse: true
+
 timezone: Europe/Paris
 defaults:
   # _posts
