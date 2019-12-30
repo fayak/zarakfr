@@ -1,0 +1,5 @@
+main:
+  - title: "Articles"
+    url: "/"
+  - title: "À propos"
+    url: "/about"
