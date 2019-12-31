@@ -85,7 +85,7 @@ pagination:
   enabled: true
   debug: false
   collection: posts
-  per_page: 2
+  per_page: 6
   permalink: /page//:num/
   sort_field: 'date'
   sort_reverse: true
@@ -98,6 +98,8 @@ footer:
     - label: "Source du blog"
       url: "https://github.com/fayak/zarakfr/"
       icon: "fab fa-fw fa-github"
+    - label: "sitemap"
+      url: "https://zarak.fr/sitemap.xml"
 
 timezone: Europe/Paris
 defaults:
