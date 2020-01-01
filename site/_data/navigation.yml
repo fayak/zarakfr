@@ -5,5 +5,7 @@ main:
     url: "/linux/"
   - title: "Crypto"
     url: "/crypto/"
+  - title: "SRE/DevOps"
+    url: "/sre-devops/"
   - title: "À propos"
     url: "/about"
