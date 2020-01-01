@@ -37,7 +37,7 @@ tracer les gens, ni à revendre quelconque information.
 
 L'adresse email de contact est la suivante :
 
-`contact`
+`cyril`
 
 {% highlight bash %}
 @
