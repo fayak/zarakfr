@@ -4,6 +4,7 @@ title:  "Exploration et prise en main des cgroups"
 date:   2019-12-30 00:00:00 +0200
 author: "zarak"
 excerpt: "Découverte et tour d'horizon des cgroups V1"
+description: "Les cgroups sont un mécanisme de Linux au coeur de Docker et des technologies de conteneurisation. Il peut être pertinent de s'y intéresser et comprendre à quoi ils servent, et comment les manipuler."
 header:
     overlay_image: /resources/linux-cgroups.jpg
     overlay_filter: "0.5"

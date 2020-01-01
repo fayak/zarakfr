@@ -50,7 +50,7 @@ plugins:
   - jekyll-include-cache
 minimal_mistakes_skin: "air"
 
-words_per_minute: 200
+words_per_minute: 140
 # Build settings
 markdown: kramdown
 
