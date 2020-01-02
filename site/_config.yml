@@ -29,7 +29,6 @@ url: "https://zarak.fr"
 # the base hostname & protocol for your site, e.g. http://example.com
 #twitter_username: jekyllrb
 #github_username:  jekyll
-repository: "fayak/zarakfr"
 logo: "/resources/logo.png"
 locale: "fr-FR"
 
@@ -53,6 +52,20 @@ minimal_mistakes_skin: "air"
 words_per_minute: 140
 # Build settings
 markdown: kramdown
+
+repository: "fayak/zarakfr"
+comments:
+  provider  : "staticman_v2"
+  staticman:
+    branch    : "master"
+    endpoint  : "https://dev.staticman.net/v3/entry/github/"
+    moderation: true
+staticman:
+  branch    : "master"
+  endpoint  : "https://dev.staticman.net/v3/entry/github/"
+  moderation: true
+
+
 
 # Exclude from processing.
 # The following items will not be processed, by default.
@@ -111,7 +124,7 @@ defaults:
       layout: single
       author_profile: true
       read_time: true
-      comments: false
+      comments: true
       share: false
       related: true
 markdown_ext: "markdown,mkdown,mkdn,mkd,md"

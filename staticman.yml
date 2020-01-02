@@ -1,0 +1,3 @@
+comments:
+      allowedFields: ["name", "email", "url", "message"]
+      branch: "master"
