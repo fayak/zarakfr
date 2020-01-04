@@ -1,6 +1,6 @@
 ---
 layout: single
-title:  "eBPF: Comment prendre le choix technique le plus absurde car c'est marrant"
+title:  "eBPF : Comment prendre le choix technique le plus absurde car c'est marrant"
 date:   2020-01-04 20:00:00 +0200
 author: "zarak"
 excerpt: "Faire un service de notification en eBPF"
@@ -29,7 +29,7 @@ qui permet d'avoir une sorte de forum pour partager des news, des liens, ...
 
 Cet été s'est posé la question de comment obtenir des notifications lorsqu'une
 news est postée, pour avoir une alerte sur une application type Slack. Si
-l'idée existait depuis déjà plusieurs mois (le serveur de news en questions est
+l'idée existait depuis déjà plusieurs mois (le serveur de news en question est
 utilisé depuis plusieurs années), ce n'est que cet été que le besoin s'est fait
 ressentir comme urgent.
 
@@ -41,7 +41,7 @@ Je me suis donc penché sur la question, et voici les options qui se sont propos
 Parmi les options que j'ai retenues, la plus simple en apparence était d'utiliser
 les mécanismes de hooks proposées par innd pour executer un script de mon cru.
 Le problème de cette solution est que innd est malheureusement assez obscur.
-J'ai trouvé documentation peu claire, mal organisée, et l'architecture
+J'ai trouvé la documentation peu claire, mal organisée, et l'architecture
 des fichiers de configuration assez déroutant. Pas de grosse flèche te disant
 
 > tkt, mets un script ici,ou un `hook: /srv/hook.py` dans `config.yml` et c'est bon
@@ -73,8 +73,8 @@ Et ça avait l'air beaucoup plus drôle à utiliser.
 
 # eBPF to the rescue
 
-Je ne vais pas présenter eBPF en détails, car je n'ai d'une part pas envie de
-dire de bêtises, et d'autre part d'autres s'en sont déjà chargé. Cependant,
+Je ne vais pas présenter eBPF en détails car d'une part je n'ai pas envie de
+dire de bêtises, et d'autre part car d'autres s'en sont déjà chargé. Cependant,
 je vais quand même présenter brièvement ce qu'est eBPF, pour pouvoir bien
 comprendre pourquoi la décision d'utiliser eBPF pour une telle problématique est
 assez absurde mais drôle
@@ -138,7 +138,7 @@ fichier, je n'avais aucune information sur son path.
 
 ## Une histoire de boucles
 
-Pas de problème en soi, ma fonction en eBPF prends en argument une partie des
+Pas de problème en soi, ma fonction en eBPF prend en argument une partie des
 arguments de `vfs_create`, soit la `struct inode *dir` du fichier à créer,
 et la `struct dentry *dentry` qui correspond au noeud du VFS dans lequel
 ajouter ce fichier.
@@ -209,7 +209,7 @@ int trace_create(struct pt_regs *ctx, struct inode *dir, struct dentry *dentry)
     u32 pid = bpf_get_current_pid_tgid();
 
     // Filter by PID
-    FILTER
+    FILTER;
 
     u64 ts = bpf_ktime_get_ns();
 
@@ -228,13 +228,12 @@ int trace_create(struct pt_regs *ctx, struct inode *dir, struct dentry *dentry)
     if (parent == NULL)
       return 0;
 
-    // This thing actually sucks. Unfortunately, as in 2019 there is
+    // This thing actually sucks. Unfortunately, as in spring 2019 there is
     // apparently no other way of getting the full PATH of a struct dentry,
     // and loops aren't allowed in eBPF, even if there are bounded.
 
-    // I hope a better will be found soon. This implemtation covers *most*
-    // of the files on the VFS since most of them are in less than 14 layers
-    // of subdirectory, but still *sucks*
+    // I hope a better will be found soon. This implemtation covers my usecase
+    // for news notification, but won't work everywhere.
     PATH
     PARENT
     PATH
@@ -288,7 +287,7 @@ et faire tout mon traitement sur ma news :
 
 # Et ça fonctionne ?
 
-Eh bien au final, oui. J'ai créé un service systemd pour executer mon script
+Eh bien au final, oui. J'ai créé un service systemd pour exécuter mon script
 en tant que deamon, il est lui même configuré pour ne regarder que les
 process qui s'apellent `innd` (donc pas de traitement inutile pour les autres),
 et je me retrouve au final avec un système ayant des performances très correctes !
@@ -301,4 +300,4 @@ puisqu'il tourne sans interruption et sans avoir raté un évenement depuis sa
 création, il y a 6 mois.
 
 Je trouve ça quand même drôle de me dire qu'un service de notification du genre
-repose sur un code utilisateur qui s'execute dans le kernel.
+repose sur un code utilisateur qui s'exécute dans le kernel.
