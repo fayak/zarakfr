@@ -39,7 +39,7 @@ Je me suis donc penché sur la question, et voici les options qui se sont propos
 ## Les options
 
 Parmi les options que j'ai retenues, la plus simple en apparence était d'utiliser
-les mécanismes de hooks proposées par innd pour executer un script de mon cru.
+les mécanismes de hooks proposées par innd pour exécuter un script de mon cru.
 Le problème de cette solution est que innd est malheureusement assez obscur.
 J'ai trouvé la documentation peu claire, mal organisée, et l'architecture
 des fichiers de configuration assez déroutant. Pas de grosse flèche te disant
@@ -49,7 +49,7 @@ des fichiers de configuration assez déroutant. Pas de grosse flèche te disant
 Et parmi les rares infos que j'ai réussi à trouver, les hooks sont en perl
 de base. Je parle pas le perl, et j'arrive même pas à le lire. Bon, j'aurai
 pu me creuser la tête, et essayer de m'en sortir, mais honnêtement rien qu'en
-lisant quelques lignes des fichiers où j'aurai du écrire mon bouzin, je me suis
+lisant quelques lignes des fichiers où j'aurais dû écrire mon bouzin, je me suis
 dit qu'il y avait peut-être une autre option.
 
 La documentation mentionnait vaguement une possibilité d'avoir du python, mais
@@ -58,15 +58,15 @@ Sauf que d'une part je n'avais aucune idée de quels flags avaient été utilis�
 pour compiler ce serveur qui fonctionnait déjà bien (filé via le paquet manager),
 d'autre part la compilation d'un projet de 30 ans (presque littéralement) avait
 l'air beaucoup plus galère qu'un simple `./configure; make; make install`.
-Et puis galère pour les mises à jours, ça semblait bourbier comme idée.
+Et puis galère pour les mises à jour, ça semblait bourbier comme idée.
 
 Assez rapidement j'ai remarqué que le serveur stocke ses news au format text
-brut dans `/var/spool/news`, avec un sous répertoire par newsgroup, un truc
+brut dans `/var/spool/news`, avec un sous-répertoire par newsgroup, un truc
 un peu hiérarchisé, assez clean. En outre, chaque news - chaque fichier - possède 
-les headers nécéssaires pour avoir le contexte (origine, newsgroup, date, etc ...)
+les headers nécessaires pour avoir le contexte (origine, newsgroup, date, etc ...)
 Je me suis donc dit qu'avec un outil de surveillance du filesystem, on aurait
-pu avoir un évenement déclenché dès qu'un fichier était créé, et faire nos
-histoires derrières.
+pu avoir un évènement déclenché dès qu'un fichier était créé, et faire nos
+histoires derrière.
 
 Sauf qu'au même moment, j'ai découvert eBPF. Et ça pouvait remplir cette mission.
 Et ça avait l'air beaucoup plus drôle à utiliser.
@@ -77,7 +77,7 @@ Je ne vais pas présenter eBPF en détails car d'une part je n'ai pas envie de
 dire de bêtises, et d'autre part car d'autres s'en sont déjà chargé. Cependant,
 je vais quand même présenter brièvement ce qu'est eBPF, pour pouvoir bien
 comprendre pourquoi la décision d'utiliser eBPF pour une telle problématique est
-assez absurde mais drôle
+assez absurde mais drôle.
 
 ## C'est quoi eBPF ?
 
@@ -88,37 +88,37 @@ Filter, socket de Berkeley, tout est lié), un peu comme avec WireShark (je croi
 d'ailleurs qu'ils utilisent BPF, à vérifier).
 
 La version extended de BPF quant à elle, permet de charger du bytecode dans le
-kernel pour executer des trucs coté kernel. Rien que ça. Alors en pratique,
-il y a des contraintes. Beaucoup de contraintes même. Executer du code côté
+kernel pour exécuter des trucs côté kernel. Rien que ça. Alors en pratique,
+il y a des contraintes. Beaucoup de contraintes même. Exécuter du code côté
 kernel peut évidemment faire partir en sauce le PC très rapidement, et il y a
 évidemment beaucoup de choses qu'on ne veut pas laisser faire par un utilisateur,
 même s'il est root ou qu'il possède la capabilities(8) `CAP_SYS_ADMIN`.
 
 Par exemple, un code du genre `while (true); continue` ne serait pas franchement
-marrant, car il n'y aurait personne pour stopper l'execution.
+marrant, car il n'y aurait personne pour stopper l'exécution.
 
-eBPF est donc un bytecode, qui peut etre produit notamment en compilant un subset
+eBPF est donc un bytecode, qui peut être produit notamment en compilant un subset
 du C avec LLVM, qu'on peut attacher à certaines fonctions du kernel.
 
 Il existe des bibliothèques pour nous aider à faire de l'eBPF, notamment
 `bpfcc-tools`, `libbpfcc`, ...
 
-# Détecter des évenements
+# Détecter des évènements
 
 J'ai donc décidé d'utiliser comme base de travail un script de [iovisor/bcc](https://github.com/iovisor/bcc/)
 créé par [Brendan Gregg](http://www.brendangregg.com/) de Netflix,
 [filelife.py](https://github.com/iovisor/bcc/blob/master/tools/filelife.py).
 
 Ce script s'occupe de tracker les fichiers dont la durée de vie est très courte,
-en s'attachant à 2 fonctions du kernel dont une très intéressantes pour moi :
+en s'attachant à 2 fonctions du kernel dont une très intéressante pour moi :
 `vfs_create`.
 
 [Cette fonction](https://elixir.bootlin.com/linux/latest/source/fs/namei.c#L2888) s'occupe d'ajouter un inode dans l'arbre des `dentry`, donc
 d'ajouter un fichier dans le [VFS](https://fr.wikipedia.org/wiki/Virtual_File_System).
-Parfaitement le genre d'évenement que j'ai envie de détecter.
+Parfaitement le genre d'évènement que j'ai envie de détecter.
 
 J'ai donc retiré la partie qui s'occupait de mesurer la durée de vie du fichier,
-et l'attache à `vfs_unlink`, et il ne me restait plus qu'à récupérer l'évenement
+et l'attache à `vfs_unlink`, et il ne me restait plus qu'à récupérer l'évènement
 en userland.
 
 # Des difficultés
@@ -132,7 +132,7 @@ créé :
 - le nom du fichier
 
 Sauf que c'était pas suffisant. Je voulais être certain que le fichier qui
-venait d'être créé était réellement créé au bon endroit, c'est à dire
+venait d'être créé était réellement créé au bon endroit, c'est-à-dire
 dans un sous-dossier de `/var/spool/news`, et bien que je possèdais le nom du
 fichier, je n'avais aucune information sur son path.
 
@@ -151,7 +151,7 @@ Pas en eBPF.
 
 Pourquoi en eBPF je n'ai pas le droit d'écrire `while (1) { continue; }` ?
 <br/>Tout simplement car le script de vérification du bytecode eBPF de linux
-interdit **formellement** tout retour en arrière dans le graphe d'execution du
+interdit **formellement** tout retour en arrière dans le graphe d'exécution du
 code. Pas moyen d'avoir une boucle, une récursion, même si une analyse statique/formelle
 peut prouver qu'elle va se finir.
 
@@ -184,7 +184,7 @@ intelligent qui décide de faire une [super optimisation](https://fr.wikibooks.o
 sans la partie [AVX2](https://fr.wikipedia.org/wiki/Advanced_Vector_Extensions)
 dirons-nous.
 
-Je construit donc un évenement par création de fichier par path du fichier,
+Je construis donc un évènement par création de fichier par path du fichier,
 en utilisant le timestamp comme moyen de relier les bouts paths entre eux.
 
 Le code eBPF ressemble donc à ça :
@@ -228,11 +228,11 @@ int trace_create(struct pt_regs *ctx, struct inode *dir, struct dentry *dentry)
     if (parent == NULL)
       return 0;
 
-    // This thing actually sucks. Unfortunately, as in spring 2019 there is
+    // This thing actually sucks. Unfortunately, as of spring 2019 there is
     // apparently no other way of getting the full PATH of a struct dentry,
-    // and loops aren't allowed in eBPF, even if there are bounded.
+    // and loops aren't allowed in eBPF, even if they are bounded.
 
-    // I hope a better will be found soon. This implemtation covers my usecase
+    // I hope something better will be found soon. This implementation covers my usecase
     // for news notification, but won't work everywhere.
     PATH
     PARENT
@@ -288,15 +288,15 @@ et faire tout mon traitement sur ma news :
 # Et ça fonctionne ?
 
 Eh bien au final, oui. J'ai créé un service systemd pour exécuter mon script
-en tant que deamon, il est lui même configuré pour ne regarder que les
-process qui s'apellent `innd` (donc pas de traitement inutile pour les autres),
+en tant que deamon, il est lui-même configuré pour ne regarder que les
+process qui s'appellent `innd` (donc pas de traitement inutile pour les autres),
 et je me retrouve au final avec un système ayant des performances très correctes !
 
 Mon programme n'est en réalité appelé que lorsque la fonction `vfs_create` est
 appelée, limitant ainsi la consommation CPU/IO inutile.
 
 Malgré son look bancal et son aspect loufoque, le script est parfaitement stable,
-puisqu'il tourne sans interruption et sans avoir raté un évenement depuis sa
+puisqu'il tourne sans interruption et sans avoir raté un évènement depuis sa
 création, il y a 6 mois.
 
 Je trouve ça quand même drôle de me dire qu'un service de notification du genre
