@@ -41,12 +41,12 @@ search: true
 theme: minimal-mistakes-jekyll
 plugins:
   - jekyll-feed
-  - jekyll-feed
   - jekyll-paginate-v2
   - jekyll-sitemap
   - jekyll-gist
   - jemoji
   - jekyll-include-cache
+  - jekyll-seo-tag
 minimal_mistakes_skin: "air"
 
 words_per_minute: 140
