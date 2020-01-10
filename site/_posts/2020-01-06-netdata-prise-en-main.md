@@ -24,7 +24,7 @@ toc_sticky: true
 ## Netdata avec Docker
 
 Malgré les critiques de Docker qui sont formulés, notamment depuis quelques
-moi depuis l'émergences de solutions alternatives (coucou [toi](https://podman.io/),
+mois depuis l'émergence de solutions alternatives (coucou [toi](https://podman.io/),
 [toi](https://cri-o.io/) et [toi](https://katacontainers.io/)), Docker reste
 encore une solution de simplicité dans beaucoup de cas. Les gens ont Docker
 d'installé, savent (à peu près) s'en servir, et c'est assez facile de lancer
@@ -33,7 +33,7 @@ une application en quelques minutes avec du Docker.
 C'est pour ces raisons que je privilégie - du moins pour le moment - encore des
 installations de tools via Docker. Libre à vous de faire de même ou non !
 
-Quoiqu'il en soit, pour Netdata, l'installation se fait assez facilement, et
+Quoi qu'il en soit, pour Netdata, l'installation se fait assez facilement, et
 je vous propose tout de suite de regarder à quoi ça ressemble :
 
 ```
@@ -52,7 +52,7 @@ docker run \
     netdata/netdata
 ```
 
-Malgré ce qui est annoncé, il va être rapidement nécéssaire de modifier de la
+Malgré ce qui est annoncé, il va être rapidement nécessaire de modifier de la
 configuration pour rendre netdata vraiment utilisable (cf [cet article](/sre/netdata/)),
 et pour faire ça, j'aime bien avoir mes fichiers de configurations sur l'hôte,
 mount dans le conteneur.
@@ -106,7 +106,7 @@ services:
 
 ## Installation directe
 
-Là pas de mystères, on suit la doc et on espère que ça fonctionne :
+Là pas de mystère, on suit la doc et on espère que ça fonctionne :
 
 ```
 bash <(curl -Ss https://my-netdata.io/kickstart.sh)
@@ -130,13 +130,13 @@ informations sur votre hôte, et qui est accessible sur le port 19999 (attention
 de base il est bindé sur `0.0.0.0`, voire `::`, donc accessible par tout le
 monde).
 
-Cependant, il est à mon sens nécéssaire de modifier quelques lignes de
+Cependant, il est à mon sens nécessaire de modifier quelques lignes de
 configuration.
 
 ## La base de données
 
 De base Netdata utilise une sorte de ring buffer pour stocker tous les metrics qu'il
-collecte. Ce ring buffer contient 3600 entrées par metrics, soit 14.4 ko par
+collecte. Ce ring buffer contient 3600 entrées par metric, soit 14.4 ko par
 metric. Comme de base Netdata est également configuré pour collecter chaque
 metric toutes les secondes, cela fait donc 1h d'historique (logique).
 
@@ -149,10 +149,10 @@ Cette même page propose également des solutions d'optimisation en utilisant
 [KSM](https://en.wikipedia.org/wiki/Kernel_same-page_merging), mais je ne me
 suis pas encore penché sur la question. En pratique, je préfère modifier 2
 choses pour arriver à mes fins :
-- La fréquence de collecte, 3s est largement suffisament précis pour moi et
-permet de diviser ... par 3 la quantité de RAM disponible
+- La fréquence de collecte, 3s est largement suffisamment précis pour moi et
+permet de diviser ... par 3 la quantité de RAM disponible.
 - Le `memory mode` (comprendre moyen de stockage de Netdata) pour ne pas
-utiliser que la RAM, mais faire un compromis entre les deux. En l'occurence,
+utiliser que la RAM, mais faire un compromis entre les deux. En l'occurrence,
 Netdata propose le `memory mode` "`dbengine`", qui se trouve être le mode
 par défaut.
 
@@ -160,34 +160,34 @@ Ce dernier utilise le disk pour stocker la donnée compressée, et
 un cache en RAM pour limiter les I/O et être un peu rapide tout de même.
 
 Il existe aussi un mode totalement en ram, un de sauvegarde sur le disk, un mode
-`mmap`, un mode pour stream uniquement les données à une autre instance, etc
+`mmap`, un mode pour stream uniquement les données à une autre instance, etc.
 {: .notice }
 
 Pour configurer la base de données, il faut éditer le fichier `netdata.conf`
 (soit dans votre dossier de configuration pour Docker, soit dans `/etc/netdata/netdata.conf`.
-Si vous ne savez pas où il est, moi non plus, mais peut être que `find -name netdata.conf`
+Si vous ne savez pas où il est, moi non plus, mais peut-être que `find -name netdata.conf`
 le sait, lui). Dans la section `[global]`, il faut remplir quelques champs, que voici :
 
-- `memory mode`, fixé à `dbengine` dans mon cas
+- `memory mode`, fixé à `dbengine` dans mon cas.
 - `history` permet de modifier le nombre d'entrées d'historique à conserver. Cette
-option est **inutile** pour le mode `dbengine`
-- `update every`, pour selectionner la fréquence de collecte
+option est **inutile** pour le mode `dbengine`.
+- `update every`, pour sélectionner la fréquence de collecte.
 - `page cache size` permet de sélectionner la quantité de RAM, en **Mo**, allouée
-au cache
+au cache.
 - `dbengine disk space`, également en Mo, qui permet de choisir la taille que fera
 la base de données. Une fois la taille maximale atteinte, les données les plus
 anciennes seront supprimées pour laisser place aux données les plus récentes.
 
 Je suis particulièrement fan de ce fonctionnement. J'adore pouvoir me dire
 que la maintenance des données les plus anciennes se fait automatiquement, et
-que quoiqu'il arrive (mulitiplication par 5 des données à collecter ou de la
+que quoi qu'il arrive (multiplication par 5 des données à collecter ou de la
 fréquence de collecte par exemple) Netdata prendra toujours le même espace
 disque.
 
 Il est intéressant de noter que Netdata en mode `dbengine` ne stocke les données
 sur le disque que compressée, et que page par page. Une page fait 4kb, donc met
 près de 17min à se remplir par metric. Du coup Netdata n'écrit sur le disque
-pour la base de données que toutes les 17min (par metrics) avec une période
+pour la base de données que toutes les 17min (par metric) avec une période
 de collecte de 1s.<br/>Et pour être encore plus efficace, il utilise
 [direct io](https://lwn.net/Articles/348719/) pour augmenter les perfs et ne pas
 polluer le cache de linux.<br/>Encore une fois, c'est un mécanisme
@@ -213,8 +213,7 @@ très utile. Je pense notamment à `respect do not track policy` qui est par dé
 à `no`, ce qui peut chagriner certains, ou bien les options pour HTTPS si Netdata
 n'est pas protégé par un reverse proxy.
 
-Il est également possible de désactiver certains plugins activés par défaut si
-ils sont considérés comme peu pertinent. Je pense par exemple au données des
+Il est également possible de désactiver certains plugins activés par défaut s'ils sont considérés comme peu pertinent. Je pense par exemple au données des
 disques ou du réseau, qui sont nombreuses et potentiellement inutiles.
 
 Pour désactiver un plugin, par exemple la collecte sur les disques SSD, il
@@ -277,9 +276,9 @@ zarakBlog:
 graph sur Netdata). On peut y écrire ce que l'on veut, ce n'est pas très
 important, mais si il y a plusieurs site de configurés, ces clés doivent
 être uniques.
-- `url` correspond à l'url sur laquelle `stub_status` est activé
-- `name` est le nom qui sera affiché sur le dashboard Netdata
-- `update_every` est la fréquence de collecte de ce site
+- `url` correspond à l'url sur laquelle `stub_status` est activé.
+- `name` est le nom qui sera affiché sur le dashboard Netdata.
+- `update_every` est la fréquence de collecte de ce site.
 
 Il y a également des options pour la priorité, pour le délai de retry, ...
 
@@ -289,7 +288,7 @@ apparait sur le Dashboard, dans l'onglet adapté :
 {% include figure image_path="/resources/netdata-nginx-example.jpg" alt="Netdata Nginx stats charts" caption="Extrait des graphs de Nginx sur Netdata" %}
 
 Il est à noter que ce n'est qu'un exemple parmi d'autres. La liste des plugins
-externes est trouveable aux adresses suivantes :
+externes est trouvable aux adresses suivantes :
 - [Doc générique des plugins.d](https://docs.netdata.cloud/collectors/plugins.d/)
 - [La liste sur github avec documentation brève](https://github.com/netdata/netdata/tree/master/collectors)
 - [python.d](https://github.com/netdata/netdata/tree/master/collectors/python.d.plugin)
@@ -306,30 +305,30 @@ de gérer une grosse quantité d'input.
 ## Configuration
 
 Configurons rapidement une destination pour les alarmes auto-configurées pour
-nous qui sont prête à l'emploi grâce aux dashboards.
+nous qui sont prêtes à l'emploi grâce aux dashboards.
 
 La configuration des alarmes se passe dans le fichier `health_alarm_notify.conf`.
 
 Ce dernier est en réalité un script bash, dans lequel on va remplir des variables
-avec des valeurs intéréssantes.
+avec des valeurs intéressantes.
 
 Configurons par exemple l'envoi sur Slack :
 
 Je pars du principe que le webhook de Slack est déjà configuré et le lien
-disponible sous la main
+disponible sous la main.
 {: .notice }
 
 - On se rend directement à la ligne contenant `SEND_SLACK` grâce à un `/SLACK`
-sur vim par exemple (sur ma machine, la ligne 369)
-- On change la ligne pour `SEND_SLACK="YES"`
-- On précise l'URL de webhook avec `SLACK_WEBHOOK_URL="https://hooks.slack.com/services/<token>/"`
+sur vim par exemple (sur ma machine, la ligne 369).
+- On change la ligne pour `SEND_SLACK="YES"`.
+- On précise l'URL de webhook avec `SLACK_WEBHOOK_URL="https://hooks.slack.com/services/<token>/"`.
 - On précise optionnellement le destinataire avec `DEFAULT_RECIPIENT_SLACK` si
 l'URL de webhook ne contient pas déjà un destinataire ou un channel.
 - C'est tout !
 
 En pratique il est possible de modifier assez facilement le destinataire d'un
-groupe d'aletes, comme celles qui concernent le dev web par exemple, grâce
-aux variable `role_recipients_slack[<team name>]`
+groupe d'alertes, comme celles qui concernent le dev web par exemple, grâce
+aux variables `role_recipients_slack[<team name>]`
 {: .notice--info }
 
 Chaque alerte configurée possède un `role` qui correspond au groupe à qui
@@ -342,7 +341,7 @@ Pour l'envoi des mail, il a été utile pour moi de setup la variable d'env
 
 ## Test
 
-Une fois la méthode de réception des alertes configurées, on test assez
+Une fois la méthode de réception des alertes configurées, on teste assez
 simplement :
 
 ```
@@ -354,10 +353,10 @@ export NETDATA_ALARM_NOTIFY_DEBUG=1
 /usr/libexec/netdata/plugins.d/alarm-notify.sh test
 ```
 
-La poche devrait vibrer à ce moment là si tout est correct !
+La poche devrait vibrer à ce moment-là si tout est correct !
 
 Pour prendre en compte les changements de configuration sur les alertes,
-il n'est pas nécéssaire de relancer Netdata, un simple signal `SIGUSR2` suffit.<br/>
+il n'est pas nécessaire de relancer Netdata, un simple signal `SIGUSR2` suffit.<br/>
 `docker-compose kill -s SIGUSR2 netdata` par exemple pour docker-compose.
 {: .notice--info }
 
