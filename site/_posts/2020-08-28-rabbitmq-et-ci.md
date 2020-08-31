@@ -4,7 +4,7 @@ title:  "Utiliser rabbitmq dans une CI"
 date:   2020-08-28 10:00:00 +0200
 author: "zarak"
 excerpt: "Configuration via rabbitmqadmin"
-description: "Comment configurer et créer les élements nécéssaires pour utiliser rabbitmq dans une CI"
+description: "Comment configurer et créer les élements nécessaires pour utiliser rabbitmq dans une CI"
 header:
     overlay_image: /resources/rabbit.jpg
     overlay_filter: "0.5"
@@ -26,12 +26,12 @@ L'objet de cet article est issu du travail que j'ai pu réalisé en tant que SRE
 à [ekee.io](https://ekee.io/), une jeune startup travaillant sur les
 problématiques liées à la gestion, au partage et à la mise à jour systématique
 des données. Cette startup développe plusieurs applications backend en Go,
-avec une architecture de micro-services, et parmi ces micro-services, il existe
-une qui s'appelle l'event-handler.
+avec une architecture de micro-services, et parmi ces micro-services, il en
+existe un qui s'appelle `event-handler`.
 
 Le role de l'event-handler est de récupérer des évenements qui ont été publiés
 sur les files (ou `queues`, prononcé à l'anglaise) de rabbitmq, les analyser et
-déclencher des actions spécifiques en fonction de l'évenement (envoyer un mail,
+déclencher des actions spécifiques en fonction de l'événement (envoyer un mail,
 appeler un webhook, modifier la base de données, ...).
 
 # Une histoire de CI
@@ -43,17 +43,17 @@ est Gitlab-CI, dont je ne vanterai pas les mérites ici, mais qui nous permet
 d'exprimer presque tout ce que l'on veut.
 
 Il est notamment possible de lancer un rabbitmq en tant que service annexe à un
-job, c'est à dire que le runner de CI, au moment d'executer le job des tests,
+job, c'est à dire que le runner de CI, au moment d'exécuter le job des tests,
 va lancer en parallèle un autre conteneur Docker, le rabbitmq, et le rendre
 accessible à celui lançant les tests. Le problème de cette solution réside dans
-la lenteur de rabbitmq à se lancer, la pénibilité de le configurer, et les
+la lenteur de rabbitmq à se lancer, la pénibilité pour le configurer, et les
 ressources qu'il consomme.
 
 Dès lors une solution émerge. Pour la phase de dev, comme les laptops des devs
 sont déjà très chargés par l'environnement de dev (minikube, les micro-services,
 la base de données, ...), un rabbitmq de dev a été mis à disposition.
 Rien d'important dessus, utilisable par tout le monde dans la boite facilement,
-redéployable en quelques secondes, les avantages sont multiples, et pour le dev,
+redéployable en quelques secondes, les avantages sont multiples et pour le dev
 c'est parfait. Pourquoi ne pas utiliser ce rabbitmq dans la CI également ?
 
 ## Configuration et concurrence
@@ -69,11 +69,11 @@ event-handler de lancé et connecté au rabbitmq.
 
 Le test échouerait sans pour autant qu'il y ai un problème dans l'event-handler.
 Pour pallier ce problème, j'ai donc mis en place un système simpliste mais
-néanmoins fonctionnel, une configuration temporaire pour rabbit à chaque CI.
+néanmoins fonctionnel, une configuration temporaire pour rabbitmq à chaque CI.
 
 ## step by step
 
-Une CI avec gitlab-CI pour un projet constitue une `pipeline`. Une `pipeline` est
+Une CI utilisant gitlab-CI pour un projet constitue une `pipeline`. Une `pipeline` est
 composé d'un ou plusieurs `jobs`, qui peuvent être concurrent ou successif. Le ou
 les `jobs` concurrents sont regroupés dans un `stage`, un étage.
 
@@ -84,10 +84,11 @@ déployer l'application à l'étage 3 par exemple.
 {% include figure image_path="/resources/gitlab-ci-pipeline.jpg" alt="Pipeline sous gitlab-CI" caption="Une pipeline de Gitlab-CI à 5 stages et 9 jobs" %}
 
 Il est possible d'avoir un contrôle assez important sur le déroulement de
-l'execution des stages. Si l'on prend l'exemple ci-dessus, le dernier job
-`notify-failure` est grisé car il n'a pas été lancé, tous les jobs ayant réussi.
+l'exécution des stages. Si l'on prend l'exemple ci-dessus, le dernier job
+`notify-failure` est grisé car il n'a pas été lancé, tous les jobs précédent
+ayant réussi.
 
-La solution que j'ai mis en place était donc d'avoir un job (dans son propre
+La solution que j'ai mise en place était donc d'avoir un job (dans son propre
 stage) avant les tests, qui allait s'occuper de configurer le rabbitmq et de
 le bootstrapper, pour que les tests puissent se lancer facilement.
 
@@ -145,27 +146,30 @@ près de 250 lignes en réalité
 
 Plusieurs choses à remarquer ici. Commençons par la fin (menfou, c'est mon blog,
 je fais ce que je veux), avec deux propriétés sur le job de fin, `when` et
-`allow_failure`. Le `when: always` s'oppose à la valeur par défaut, `on_success`
+`allow_failure`.
+
+Le `when: always` s'oppose à la valeur par défaut, `on_success`
 qui configure le job pour se lancer uniquement si tous les jobs du stage
 précédent se sont déroulés avec succès. Le `always` ici permet de nettoyer
-l'environnement quoi qu'il arrive, même si les tests échouent. L'option
-`allow_failure` à `true` parle d'elle-même, pusiqu'elle autorise ce job à
+l'environnement quoi qu'il arrive, même si les tests échouent.
+
+L'option `allow_failure` à `true` parle d'elle-même, puisqu'elle autorise ce job à
 échouer sans que ça impacte le reste de la pipeline (notamment sur le résultat
 final). Le but ici est de ne pas faire échouer la pipeline pour une mauvaise
-raison. Il est peu probable qu'il échoue, et si c'est effectivement le cas,
+raison. Il est peu probable que ce job échoue, et si c'est effectivement le cas,
 ce n'est pas une raison suffisante pour déclarer que l'intégralité de la
 pipeline a échoué.
 
 Le `except: ['tags']` sert juste à éviter de lancer les tests quand on est sur
-un évenement de type `tag`, c'est à dire lorsque l'on souhaite publier une
+un événement de type `tag`, c'est à dire lorsque l'on souhaite publier une
 release.
 
 Les différentes variables en `EKEE_*` sont des variables d'env pour
 l'event-handler, pour donner les informations nécessaires à la connexion
 au rabbitmq. Ces variables sont soit directement définies dans le fichier de
-configuration de la CI, soit issue de variables stockées dans Gitlab, pour les
+configuration de la CI, soit issues de variables stockées dans Gitlab, pour les
 protéger. Cependant, on note la variable `EKEE_RABBITMQ_VHOST` qui possède
-la particularité d'être "dynamique". En effet, elle dépend de variables mise
+la particularité d'être "dynamique". En effet, elle dépend de variables mises
 à disposition par Gitlab, `CI_PROJECT_ID` et `CI_PIPELINE_ID`. Ces dernières
 vont nous permettre d'avoir un nom de vhost unique par pipeline. Et c'est ce
 vhost qui va être créé, configuré, utilisé et détruit, résolvant ainsi le
@@ -174,7 +178,7 @@ rabbitmq.
 
 ## rabbitmqadmin
 
-Mais techniquement, comment cela fonctionn la création+configuration d'un vhost
+Mais techniquement, comment fonctionne la création + configuration d'un vhost
 rabbitmq ? Le lecteur attentif (et qui n'aura pas encore fermé cet onglet) aura
 remarqué l'image, `rabitmqadmin` et le `script: ./ci/rabbitmq-ci.sh <declare|delete>`.
 
@@ -216,10 +220,10 @@ RABBIT_EXTRA_ARGS=${RABBIT_EXTRA_ARGS:-}
 
 Cette image est inspiré de [ce projet](https://github.com/activatedgeek/docker-rabbitmqadmin),
 qui malheureusement n'a pas été mis à jour depuis un moment et n'est pas
-suffisament complet pour notre utilisation.
+suffisament complète pour notre utilisation.
 
 Cette image permet donc d'utiliser rabbitmqadmin sous docker, avec un peu de
-wrapping pour simplifier plein de choses.
+wrapping pour simplifier l'utilisation (éviter la redondance des certains arguments.
 
 Regardons maintenant le script `./ci/rabbitmq-ci.sh`
 
@@ -300,7 +304,7 @@ Ce script consitue un bon petit paté déjà ! Que faut-il comprendre ?
    - le `read -d #` (et le `#` à la fin du here-doc) permettent d'eviter que read ne `return 1` en ne trouvant pas de `\0`, ce qui pose problème avec le `set -e` défini au dessus. Ce petit hack permet d'avoir tout de fonctionnel, sans avoir le `#` à la fin de `$DECLARE` pour autant. Le charactère `#` est arbitraire, mais intéressant car il ne fait pas parti du here-doc de base (heureusement !) et c'est un commentaire en bash, donc moins de risques d'avoir d'éventuels effets indésirables.
    {: .notice--info }
 2. On défini notre variable `$DELETE` à partir de `$DECLARE` via `sed(1)`, contenant le script
-   opposé. Seul(s) le(s) vhost(s) sont détruit, puisque par effet domino, tout
+   opposé. Seul(s) le(s) vhost(s) sont détruit(s), puisque par effet domino, tout
    ce qui réside sous le vhost est détruit lors de sa destruction.
 
    On fera tout de même attention au fait que les utilisateurs ne font pas parti
@@ -312,14 +316,14 @@ Ce script consitue un bon petit paté déjà ! Que faut-il comprendre ?
    dans une CI ou non. Le comportement est légèrement différent en fonction de,
    comme l'en atteste l'usage.
 4. En mode manuel, le docker `rabbitmqadmin` est lancé, et les arguments sont
-   propagés
+   propagés.
 5. Dans le cas contraire, en CI, nous sommes déjà dans `rabbitmqadmin`, on peut
-   donc directement executer notre script
+   donc directement exécuter notre script.
 
 # Au final
 
 Ainsi, si l'on regarde le processus dans son intégralité, sont bien créées toutes
-les ressources nécéssaires au fonctionnement de notre event-handler, et à ses
+les ressources nécessaires au fonctionnement de notre event-handler, et à ses
 tests, avant de lancer ces derniers. La suppression après-coup, bien que non
 nécessaire, permet de libérer un peu ce rabbitmq de développement. Le script
 mis à disposition dans le repo et utilisé par la CI est également utilisable
@@ -327,5 +331,6 @@ manuellement. Ainsi, il est très facile pour un dev de se créer un nouvel env
 sur le rabbitmq pour des nouveaux tests par exemple, ou pour redéployer une
 configuration identique sur un autre rabbitmq vierge.
 
-Je remercie Alexandre Bernard de m'avoir autorisé à utiliser des extraits du
+Je remercie [Alexandre Bernard](https://www.linkedin.com/in/alexandre-bernard-388379150/)
+de m'avoir autorisé à utiliser des extraits du
 travail que j'ai pu faire à eKee pour constituer cet article.
