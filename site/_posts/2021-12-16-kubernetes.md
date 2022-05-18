@@ -13,7 +13,7 @@ header:
     teaser: /resources/Kubernetes.jpg
 
 categories:
-    - devops
+    - sre-devops
 
 toc: true
 toc_sticky: true
