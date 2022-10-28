@@ -47,9 +47,10 @@ plugins:
   - jemoji
   - jekyll-include-cache
   - jekyll-seo-tag
+  - jekyll-pdf-embed
 minimal_mistakes_skin: "air"
 
-words_per_minute: 140
+words_per_minute: 180
 # Build settings
 markdown: kramdown
 
