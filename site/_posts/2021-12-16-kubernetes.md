@@ -24,7 +24,5 @@ _Cours mis à jour en 2022_
 
 [Lien direct]({{ site.url }}/resources/Kubernetes.pdf)
 
- {% pdf /resources/Kubernetes.pdf" %}
+ <object data="/resources/Kubernetes.pdf" width="100%" height="800px" type="application/pdf"></object>
 Si le PDF ne s'affiche pas, utilisez le lien ci-dessus
- </object>
-
