@@ -24,7 +24,7 @@ classes: wide
 
 ## Setup de test
 
-Pour les premier tests, nous allons considérer deux unités, `a.service` et `b.service`
+Pour les premiers tests, nous allons considérer deux unités, `a.service` et `b.service`
 
 Le but va être de considérer les différentes relations que l'on peut établir
 entre `a` et `b` avec systemd, en essayant de conserver une approche où `a > b`.
@@ -68,6 +68,10 @@ ExecStart=/tmp/service.sh true
 [Unit]
 Description=b.service
 Wants=a.service
+#Requires=a.service
+#Requisite=a.service
+#BindsTo=a.service
+#PartOf=a.service
 
 [Service]
 ExecStart=/tmp/service.sh true
@@ -94,11 +98,11 @@ Nous obtenons le tableau suivant :
 | BindsTo=                 | False       | False       || Yes                       | No                        | /                        | /                        | Yes                               | Yes                        |
 | BindsTo=                 | True        | False       || Yes                       | No                        | /                        | /                        | Yes                               | No                         |
 | BindsTo=                 | True        | True        || Yes                       | No                        | No                       | Yes *\*2*                | No                                | No                         |
-| PartOf=                  | -           | True        || No                        | No                        | No                       | Yes *\*3*                | *(3)*                             | No                         |
-| PartOf=                  | -           | False       || No                        | No                        | No                       | Yes *\*3*                | *(3)*                             | No                         |
+| PartOf=                  | -           | True        || No                        | No                        | No                       | Yes *\*3*                | No                                | No                         |
+| PartOf=                  | -           | False       || No                        | No                        | No                       | Yes *\*3*                | Yes                               | No                         |
 
 1. Pour effectivement avoir ce comportement, l'unité `a` doit avoir fail avant
-   que `b` ne chercher à démarrer
+   que `b` ne cherche à démarrer
 2. Liaison encore plus forte qu'avec `Requires=`, puisque `b` va être stoppé peu
    importe la raison pour laquelle `a` devient inactif (pas uniquement `systemctl stop`)
 3. Fonctionne aussi pour les restart
@@ -113,7 +117,7 @@ Deux unités systemd reliées entre elle peuvent créer une dépendance de déma
 Dans ce cas, démarrer l'unité `b` va démarrer l'unité `a`. Cependant, par défaut,
 les deux unité vont être démarrées "simultanément". Si l'on souhaite avoir une
 ascendance de l'une sur l'autre, il faudra utiliser les propriétés `Before=`
-et `After=` (dont elles sont elles-même leur opposé, cf la troisième section)
+et `After=` (dont elles sont elles-même leur opposé, cf [le sens des propriétés](#sens-des-propriétés))
 
 Partons du principe que `a.service` et `b.service` prennent 5s à démarrer, et qu'ils
 ne vont pas fail. On a établi une relation de `b` vers `a` avec `b` possèdant un
@@ -137,7 +141,7 @@ On observe donc :
 
 - Le comportement de démarrage asynchrone désiré quand la configuration est correcte
 - Pas de liaison directe entre les unités avec uniquement `Before=`/`After=`.
-  Une déclaraison de dépendance avec l'une des options de la première section est nécessaire.
+  Une déclaraison de dépendance avec l'une des options de [dépendance](#dépendances-avec-wants-requires-requisite-bindsto-et-partof) est nécessaire.
 - Les cas contradictoires sont traités comme tel et génèrent une erreur. Il est
   cependant intéressant de noter que l'erreur n'est déclenchée qu'à l'execution et
   n'est pas détectée à la création de l'unité.
@@ -161,7 +165,7 @@ Voici la table de correspondance :
 | Triggers=  | TriggeredBy=  | *Automatic*         | *Automatic*       |
 | Conflicts= | ConflictedBy= | [Unit]              | *Automatic*       |
 
-Les propritétés flagguées en *Automatic* ne peuvent être spécifiées directement.
+Les propriétés flagguées en *Automatic* ne peuvent être spécifiées directement.
 
 # Les .target
 
@@ -294,3 +298,31 @@ emergency.service    |              |              |
 emergency.target                    v
                               graphical.target
 </pre>
+
+# Observer les relations entre les unités
+
+En ayant connaissance de tous les éléments évoqués dans cette article, une
+dernière question peut rester en suspend : comment observer facilement toutes
+ces dépendances lorsque l'on a un certain nombre d'unités systemd ?
+
+S'il est bien évidemment possible de `systemctl cat` nos unités, l'approche
+sera potentiellement lente si plusieurs unités sont impliquées, et peu visuelle.
+
+Heureusement, systemd est toujours là pour nous aider, et pour peu que nous
+ayons un outil pour convertir le dot en jpg/svg, on peut se faire un beau
+graph orienté automatiquement avec la commande suivante :
+
+{% highlight bash %}
+# To see all units in a huge and unusable graph:
+systemd-analyze dot | dot -Tpng -o ./graph.png
+# To filter for some units we're interested in:
+systemd-analyze dot "basic.target" "sockets.target" "local-fs.target" "docker.service" | dot -Tpng -o ./graph.png
+# You can grep -v to filter out some nodes of the graph eventually
+systemd-analyze dot "basic.target" "sockets.target" "local-fs.target" "docker.service" | \
+grep -Ev "(rescue|emergency|\.timer)" | \
+dot -Tpng -o ./graph.png
+{% endhighlight %}
+
+Dans les autres commandes de systemd-analyze utiles, on a par exemple `systemd-analyze plot > ./plot.svg`
+pour voir la timeline de démarrage des unités systemd.
+{: .notice--info }
