@@ -101,15 +101,11 @@ Nous obtenons le tableau suivant :
 | PartOf=                  | -           | True        || No                        | No                        | No                       | Yes *\*3*                | No                                | No                         |
 | PartOf=                  | -           | False       || No                        | No                        | No                       | Yes *\*3*                | Yes                               | No                         |
 
-1. Pour effectivement avoir ce comportement, l'unité `a` doit avoir fail avant
+1. * Pour effectivement avoir ce comportement, l'unité `a` doit avoir fail avant
    que `b` ne cherche à démarrer
-2. Liaison encore plus forte qu'avec `Requires=`, puisque `b` va être stoppé peu
+2. * Liaison encore plus forte qu'avec `Requires=`, puisque `b` va être stoppé peu
    importe la raison pour laquelle `a` devient inactif (pas uniquement `systemctl stop`)
-3. Fonctionne aussi pour les restart
-
-- Un `/` signifie que le cas n'est pas applicable.
-- Un `-` indique que la valeur n'importe pas pour les résultats de la ligne
-{: .notice--info }
+3. * Fonctionne aussi pour les restart
 
 # Relation de temps avec After= et Before=
 
@@ -124,16 +120,20 @@ ne vont pas fail. Nous avons établi une relation de `b` vers `a` avec `b` poss�
 `Wants=a.service` de telle sorte que l'activation de `b` active `a`.
 Le comportement observé est donc très logique :
 
-| *a* Before= | *a* After= | *b* Before= | *a* After= | Starting unit | *a* start time   | *b* start time     |
-|-------------|------------|-------------|------------|---------------|-----------------:|-------------------:|
-|             |            |             |            | `b`           | T0               | T0                 |
-|             |            | a.service   |            | `b`           | T5               | T0                 |
-|             |            |             | a.service  | `b`           | T0               | T5                 |
-|             | b.service  |             |            | `a`           | T0               | - (no deps a -> b) |
-|             | b.service  |             |            | `b`           | T5               | T0                 |
-| b.service   |            |             |            | `b`           | T0               | T5                 |
-|             |            | a.service   | a.service  | `b`           | - (config error) | T0                 |
-|             | b.service  | a.service   |            | `b`           | T5               | T0                 |
+| *a* Before= | *a* After= | *b* Before= | *a* After= | Starting unit | *a* start time   | *b* start time           |
+|-------------|------------|-------------|------------|---------------|-----------------:|-------------------------:|
+|             |            |             |            | `b`           | T0               | T0                       |
+|             |            | a.service   |            | `b`           | T5               | T0                       |
+|             |            |             | a.service  | `b`           | T0               | T5                       |
+|             | b.service  |             |            | `a`           | T0               | - (no deps a -> b) *\*1* |
+|             | b.service  |             |            | `b`           | T5               | T0                       |
+| b.service   |            |             |            | `b`           | T0               | T5                       |
+|             |            | a.service   | a.service  | `b`           | - (config error) | T0                       |
+|             | b.service  | a.service   |            | `b`           | T5               | T0                       |
+
+1. * Le service `b` n'est pas démarré par `a` puisque `a` ne dispose pas de
+   dépendance vers `b`, seul `b` en possède une vers `a` et elles ne sont pas
+   bi-directionnelles (comme démontré dans le premier tableau)
 
 Les autres cas sont assez évident à inférer.
 
