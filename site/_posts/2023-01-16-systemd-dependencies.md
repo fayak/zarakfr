@@ -27,9 +27,9 @@ classes: wide
 Pour les premiers tests, nous allons considérer deux unités, `a.service` et `b.service`
 
 Le but va être de considérer les différentes relations que l'on peut établir
-entre `a` et `b` avec systemd, en essayant de conserver une approche où `a > b`.
+entre `a` et `b` avec systemd, en essayant de conserver une approche où `a` est une dépendance de `b`.
 
-Pour cela, on va essayer de lancer un script bash de test, qui a pour seul but
+Pour cela, nous allons essayer de lancer un script bash de test qui a pour seul but
 de voir les différents cas, notamment si un service fail ou pas. Voici le script
 utilisé pour les `.service` :
 
@@ -47,14 +47,14 @@ done
 $1
 {% endhighlight %}
 
-Le but ici est de pouvoir appelé le script avec un argument `true`/`false` pour
+Le but ici est de pouvoir appeler le script avec un argument `true`/`false` pour
 déclencher la boucle ou non.
-La date et les `sleeps` servent pour comparer l'ordre de lancement (synchrone ou
+La date et les `sleeps` servent à comparer l'ordre de lancement (synchrone ou
 asynchrone).
 
 # Dépendances avec Wants=, Requires=, Requisite=, BindsTo= et PartOf=
 
-Les tests de relation entre `a` et `b` sera fait avec les unités suivantes :
+Les tests de relation entre `a` et `b` seront fait avec les unités suivantes :
 
 {% highlight toml %}
 [Unit]
@@ -78,8 +78,8 @@ ExecStart=/tmp/service.sh true
 {% endhighlight %}
 
 L'argument `true`/`false` de `service.sh` dans `ExecStart=` sera amené à changer
-pour les différents tests (reflété dans le tableau par les colonnes 2 et 3),
-et les propriétés de l'`[Unit]` de `b` également (première colonne).
+selon les différents tests. La valeur est reflétée dans le tableau par les colonnes `a success` et `b success`. Un `-` signifie que la valeur n'est pas importante pour le test.
+Les propriétés de l'`[Unit]` de `b` sont quant à elles dans la colonne `Mode` du tableau. Les autres colonnes représentent les différents issues des tests, un `/` signifie que ce résultat n'est pas applicable pour le test donné.
 
 Nous obtenons le tableau suivant :
 
@@ -113,15 +113,15 @@ Nous obtenons le tableau suivant :
 
 # Relation de temps avec After= et Before=
 
-Deux unités systemd reliées entre elle peuvent créer une dépendance de démarrage.
+Deux unités systemd reliées entre elles peuvent créer une dépendance de démarrage.
 Dans ce cas, démarrer l'unité `b` va démarrer l'unité `a`. Cependant, par défaut,
 les deux unité vont être démarrées "simultanément". Si l'on souhaite avoir une
 ascendance de l'une sur l'autre, il faudra utiliser les propriétés `Before=`
-et `After=` (dont elles sont elles-même leur opposé, cf [le sens des propriétés](#sens-des-propriétés))
+et `After=`. Ces deux propriétés sont opposées et symbolisent la même dépendance (cf [le sens des propriétés](#sens-des-propriétés)).
 
 Partons du principe que `a.service` et `b.service` prennent 5s à démarrer, et qu'ils
-ne vont pas fail. On a établi une relation de `b` vers `a` avec `b` possèdant un
-`Wants=a.service` de tel sorte que l'activation de `b` active `a`.
+ne vont pas fail. Nous avons établi une relation de `b` vers `a` avec `b` possèdant un
+`Wants=a.service` de telle sorte que l'activation de `b` active `a`.
 Le comportement observé est donc très logique :
 
 | *a* Before= | *a* After= | *b* Before= | *a* After= | Starting unit | *a* start time   | *b* start time     |
@@ -196,7 +196,7 @@ Requires=b.service
 {% endhighlight %}
 
 Mais pour cela, il faut "connaitre" `b.service`. Le problème peut être résolu
-autrement, et de manière moins coupleuse avec la configuration suivante :
+autrement, et ce avec un couplage faible en utilisant la configuration suivante :
 
 {% highlight TOML %}
 [Unit]
@@ -235,8 +235,7 @@ s'occupe de fournir le filesystem local (si c'est `b` ou un autre service), il
 se concentre sur le besoin.
 
 Un administrateur pourra donc interchanger `b` par `c` par la suite sans avoir
-à changer `a` pour indiquer désormais `c` au lieu de `b` comme la première solution
-le suggérait.
+à modifier `a` pour refléter ce changement comme la première solution le demandait.
 
 ## Les target de boot par défaut
 
@@ -303,7 +302,7 @@ emergency.target                    v
 
 En ayant connaissance de tous les éléments évoqués dans cette article, une
 dernière question peut rester en suspend : comment observer facilement toutes
-ces dépendances lorsque l'on a un certain nombre d'unités systemd ?
+ces dépendances lorsque nous avons un certain nombre d'unités systemd ?
 
 S'il est bien évidemment possible de `systemctl cat` nos unités, l'approche
 sera potentiellement lente si plusieurs unités sont impliquées, et peu visuelle.
@@ -323,6 +322,6 @@ grep -Ev "(rescue|emergency|\.timer)" | \
 dot -Tpng -o ./graph.png
 {% endhighlight %}
 
-Dans les autres commandes de systemd-analyze utiles, on a par exemple `systemd-analyze plot > ./plot.svg`
+Dans les autres commandes de systemd-analyze utiles, nous avons par exemple `systemd-analyze plot > ./plot.svg`
 pour voir la timeline de démarrage des unités systemd.
 {: .notice--info }
