@@ -325,3 +325,19 @@ dot -Tpng -o ./graph.png
 Dans les autres commandes de systemd-analyze utiles, nous avons par exemple `systemd-analyze plot > ./plot.svg`
 pour voir la timeline de démarrage des unités systemd.
 {: .notice--info }
+
+On peut essayer de confirmer le schéma précédent des relations entre targets
+avec `systemd-analyze`. J'obtiens le schéma suivant sur ma machine :
+
+![graph systemd targets](/resources/systemd-graph.jpg)
+
+| Color     | Systemd relation |
+|:----------|-----------------:|
+| black     | Requires         |
+| dark blue | Requisite        |
+| dark grey | Wants            |
+| red       | Conflicts        |
+| green     | After            |
+
+Certains éléments ont volontairement été retiré pour des raisons de clareté.
+{: .notice--info }
