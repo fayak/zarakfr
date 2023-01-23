@@ -91,21 +91,21 @@ Nous obtenons le tableau suivant :
 | Requires=                | False       | False       || Yes                       | No                        | No                       | Yes                      | Yes                               | /                          |
 | Requires=                | True        | True        || Yes                       | No                        | No                       | Yes                      | No                                | No                         |
 | Requires=                | True        | False       || Yes                       | No                        | No                       | Yes                      | Yes                               | No                         |
-| Requires= + After= *\*1* | False       | -           || Yes                       | No                        | /                        | /                        | Yes                               | /                          |
+| Requires= + After= <sup>1</sup> | False       | -           || Yes                       | No                        | /                        | /                        | Yes                               | /                          |
 | Requisite=               | True        | -           || No                        | No                        | No                       | Yes                      | if *a* not already started        | if *a* not already started |
 | Requisite=               | False       | -           || No                        | No                        | /                        | /                        | Yes                               | Yes                        |
 | BindsTo=                 | False       | True        || Yes                       | No                        | /                        | /                        | Yes                               | Yes                        |
 | BindsTo=                 | False       | False       || Yes                       | No                        | /                        | /                        | Yes                               | Yes                        |
 | BindsTo=                 | True        | False       || Yes                       | No                        | /                        | /                        | Yes                               | No                         |
-| BindsTo=                 | True        | True        || Yes                       | No                        | No                       | Yes *\*2*                | No                                | No                         |
-| PartOf=                  | -           | True        || No                        | No                        | No                       | Yes *\*3*                | No                                | No                         |
-| PartOf=                  | -           | False       || No                        | No                        | No                       | Yes *\*3*                | Yes                               | No                         |
+| BindsTo=                 | True        | True        || Yes                       | No                        | No                       | Yes <sup>2</sup>         | No                                | No                         |
+| PartOf=                  | -           | True        || No                        | No                        | No                       | Yes <sup>3</sup>         | No                                | No                         |
+| PartOf=                  | -           | False       || No                        | No                        | No                       | Yes <sup>3</sup>         | Yes                               | No                         |
 
-1. * Pour effectivement avoir ce comportement, l'unité `a` doit avoir fail avant
+* <sup>1</sup> Pour effectivement avoir ce comportement, l'unité `a` doit avoir fail avant
    que `b` ne cherche à démarrer
-2. * Liaison encore plus forte qu'avec `Requires=`, puisque `b` va être stoppé peu
+* <sup>2</sup> Liaison encore plus forte qu'avec `Requires=`, puisque `b` va être stoppé peu
    importe la raison pour laquelle `a` devient inactif (pas uniquement `systemctl stop`)
-3. * Fonctionne aussi pour les restart
+* <sup>3</sup> Fonctionne aussi pour les restart
 
 # Relation de temps avec After= et Before=
 
