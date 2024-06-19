@@ -23,17 +23,17 @@ classes: wide
 # Docker et les layers
 ## Explications très succinte des layers
 
-Docker fonctionne grâce à Overlayfs* et des layers. Une image est composé de layers, assemblés au lancement d'un
-container pour former l'image finale.
+Docker fonctionne grâce à Overlayfs* et des layers. Une image est composée de layers, assemblés au lancement d'un
+container pour former le filesystem final.
 
 \* Overlayfs dans la plupart des cas. Docker peut également utiliser d'autre engines, mais overlayfs est celui par défaut
 et le plus répandu.
 {: .notice--info }
 
-Lors de la création d'une image, nous créons ces layers, et nous y ajoutons des métadata. Chaque instruction d'un
+Lors de la création d'une image, nous créons ces layers, et nous y ajoutons des métadata. Chaque instruction* d'un
 Dockerfile ajoute un Layer, ou une métadata à l'image finale.
 
-Prenons le Dockerfile suivant comme example :
+Prenons le Dockerfile suivant comme exemple :
 
 {% highlight bash %}
 FROM python:alpine
@@ -47,7 +47,7 @@ RUN echo 3 > 3
 {% endhighlight %}
 
 Cette image possède au moins 4 layers :
-- au moins 1 via `python:alpine`, image de base utilisée ici
+- au moins 1 via `python:alpine`, image de base utilisée ici (en réalité probablement plus)
 - 1 layer par instruction `RUN`
 
 Les instructions ENV et LABEL ne génèrent pas de layers, mais uniquement des métadata
@@ -79,18 +79,20 @@ Plusieurs raisons :
 - L'image peut s'en retrouver plus lourde :
 
 {% highlight bash %}
-$ cat Dockerfile-cache 
+$ cat Dockerfile-cache
 FROM python:3.12-alpine
 
 RUN dd if=/dev/zero of=./file bs=100M count=1
 RUN echo do something
 RUN rm ./file
-$ cat Dockerfile-no-cache 
+
+$ cat Dockerfile-no-cache
 FROM python:3.12-alpine
 
 RUN dd if=/dev/zero of=./file bs=100M count=1 && \
     echo do something && \
     rm ./file
+
 $ docker build -t no-cache -f Dockerfile-no-cache .
 [...]
 $ docker build -t cache -f Dockerfile-cache .
@@ -111,9 +113,11 @@ RUN rm /password
 
 $ docker build -t password .
 [...]
+
 $ docker run --rm --entrypoint cat password /password
 cat: can\'t open '/password': No such file or directory
 $ # /password file seems to be removed from the image, yay !
+
 $ cat $(docker inspect password | jq -r '.[0].GraphDriver.Data.LowerDir' | cut -d ':' -f2)/password"
 secret password
 $ # Actually isn't, still in the image
@@ -128,23 +132,29 @@ $ # Actually isn't, still in the image
 Ordonner ses layers a 2 énormes impacts pour tout le monde :
 
 - Si 2 images différentes ont toutes les deux besoin de python 3.12 et d'avoir git, elles peuvent partager des layers.
-Tout les layers partagés ne dupliquent pas l'espace disque pris. Ainsi, si deux image pour deux applications A et B,
+Tous les layers partagés ne dupliquent pas l'espace disque pris. Ainsi, si deux image pour deux applications A et B,
 basées sur python 3.12 et git, sont bien construite, l'espace disque sera de `sizeof(python 3.12 + git) + sizeof(A) + sizeof(B)`.
-Si elles sont mal construites, l'espace disque total sera au mieux de `sizeof(python 3.12) + 2*sizeof(git) + sizeof(A) + sizeof(B)`, et au pire
+
+  Si elles sont mal construites, l'espace disque total sera au mieux de `sizeof(python 3.12) + 2*sizeof(git) + sizeof(A) + sizeof(B)`, et au pire
 `2*sizeof(python 3.12) + 2*sizeof(git) + sizeof(A) + sizeof(B)`.
 L'espace disques est donc significativement impacté, le temps de push/pull également, voire le startup time (si on doit pull l'image avant).
 
-- Un développeur qui travaille sur une application avec son image va vouloir rebuild l'image fréquemment, pour tester. Il est fort probable que les dépendances de l'image évoluent rarement, que les dépendances de l'application évoluent peu fréquemment et que l'application évoluent fréquemment. Si pour un
-changement minime de code, par exemple ajouter un commentaire, il faut re-télécharger toutes les dépendances, le temps
+- Un développeur qui travaille sur une application avec son image va vouloir rebuild l'image fréquemment, pour tester.
+  Il est fort probable que les dépendances de l'image évoluent rarement, que les dépendances de l'application évoluent
+peu fréquemment et que l'application évoluent fréquemment.
+
+  Si pour un changement minime de code, par exemple ajouter un commentaire, il faut re-télécharger toutes les dépendances, le temps
 de build en devient catastrophiquement long, et les serveurs des associations et volontaires qui hébergent les
 dépendances se font contacter inutilement. En résulte un temps de build trop long, un développeur frustré, et de la bande
-passante gachée. Si au contraire les instruction du Dockerfile sont bien ordonnées, nous n'avons pas ce problème grâce à
+passante gachée.
+
+  Si au contraire les instruction du Dockerfile sont bien ordonnées, nous n'avons pas ce problème grâce à
 la réutilisation du cache de build.
 
 ## Comment faire ?
 
 La rule of thumb pour écrire son Dockerfile est de chercher à minimiser les layers. Mais il faut également garder en
-tête le cache, et l'utiliser avec habilité.
+tête le cache, et l'utiliser avec habileté.
 
 Dans ce billet, on va prendre pour exemple la construction d'une image docker pour une
 application en Python, image qui nécessite `git` et des dépendances pythons listées
@@ -169,10 +179,10 @@ ENTRYPOINT ["python3", "/app/app.py"]
 {% endhighlight %}
 
 Un seul run qui regroupe donc plusieurs layers en un, pas de layer de cache supprimé par la suite qui traine dans
-l'image finale, sela semble intelligent en apparence
+l'image finale, sela semble intelligent en apparence.
 
-Mais si on ajoute un commentaire basique dans le code de l'application, absolumenent toutes les dépendances python et git
-sont re-install, et on perd environ mille ans.
+Mais si on ajoute un commentaire basique dans le code de l'application, absolument toutes les dépendances python et git
+seront réinstallées, et on perd environ mille ans.
 
 Une meilleure manière de faire :
 {% highlight bash %}
@@ -196,9 +206,9 @@ Il y a ici plus de layers. Mais le changement le plus fréquent, celui du code s
 et non pas l'install des dépendances, grâce au cache du builder Docker. L'opération prends très peu de temps.
 
 L'opération moins fréquente de changement des dépendances python ne provoque pas la réinstallation de git, uniquement
-le `COPY pyproject.toml` et la suite.
+le `COPY pyproject.toml` (et la suite).
 
-Et le changement le plus rare, les dépendances d'image/d'OS (git par exemple) entraine le rebuild complet.
+Et seul le changement le plus rare, celui des dépendances d'image/d'OS (git par exemple), entraine le rebuild complet.
 
 Si l'on possède 2 applications A et B qui dépendent toutes les deux de `python:3.12-alpine` et de `git`, si le début des
 deux Dockerfile est identique, les deux images résultantes vont partager leurs premiers layers. Tout bénef !
