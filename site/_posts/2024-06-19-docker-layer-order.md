@@ -21,7 +21,7 @@ classes: wide
 ---
 
 # Docker et les layers
-## Explications très succinte des layers
+## Explications très succincte des layers
 
 Docker fonctionne grâce à Overlayfs* et des layers. Une image est composée de layers, assemblés au lancement d'un
 container pour former le filesystem final.
@@ -30,8 +30,8 @@ container pour former le filesystem final.
 et le plus répandu.
 {: .notice--info }
 
-Lors de la création d'une image, nous créons ces layers, et nous y ajoutons des métadata. Chaque instruction* d'un
-Dockerfile ajoute un Layer, ou une métadata à l'image finale.
+Lors de la création d'une image, nous créons ces layers, et nous y ajoutons des métadonnées. Chaque instruction* d'un
+Dockerfile ajoute un Layer, ou une métadonnées à l'image finale.
 
 Prenons le Dockerfile suivant comme exemple :
 
@@ -50,7 +50,7 @@ Cette image possède au moins 4 layers :
 - au moins 1 via `python:alpine`, image de base utilisée ici (en réalité probablement plus)
 - 1 layer par instruction `RUN`
 
-Les instructions ENV et LABEL ne génèrent pas de layers, mais uniquement des métadata
+Les instructions ENV et LABEL ne génèrent pas de layers, mais uniquement des métadonnées
 {: .notice--success }
 
 On peut apercevoir ces layers avec les commandes docker push/pull qui indiquent quels layers sont pushed/pulled
@@ -102,7 +102,7 @@ no-cache         latest            b7649a20b96b   30 seconds ago   57.5MB
 cache            latest            9a36cf7702b2   30 seconds ago   162MB
 {% endhighlight %}
 
-- L'image peut leaker des serets :
+- L'image peut leaker des secrets :
 {% highlight bash %}
 $ cat Dockerfile
 FROM python:3.12-alpine
@@ -131,8 +131,8 @@ $ # Actually isn't, still in the image
 
 Ordonner ses layers a 2 énormes impacts pour tout le monde :
 
-- Si 2 images différentes ont toutes les deux besoin de python 3.12 et d'avoir git, elles peuvent partager des layers.
-Tous les layers partagés ne dupliquent pas l'espace disque pris. Ainsi, si deux image pour deux applications A et B,
+- Si 2 images différentes ont toutes les deux besoins de python 3.12 et d'avoir git, elles peuvent partager des layers.
+Tous les layers partagés ne dupliquent pas l'espace disque pris. Ainsi, si deux images pour deux applications A et B,
 basées sur python 3.12 et git, sont bien construite, l'espace disque sera de `sizeof(python 3.12 + git) + sizeof(A) + sizeof(B)`.
 
   Si elles sont mal construites, l'espace disque total sera au mieux de `sizeof(python 3.12) + 2*sizeof(git) + sizeof(A) + sizeof(B)`, et au pire
@@ -144,11 +144,11 @@ L'espace disques est donc significativement impacté, le temps de push/pull éga
 peu fréquemment et que l'application évoluent fréquemment.
 
   Si pour un changement minime de code, par exemple ajouter un commentaire, il faut re-télécharger toutes les dépendances, le temps
-de build en devient catastrophiquement long, et les serveurs des associations et volontaires qui hébergent les
+de build en devient catastrophiquement long et les serveurs des associations et volontaires qui hébergent les
 dépendances se font contacter inutilement. En résulte un temps de build trop long, un développeur frustré, et de la bande
-passante gachée.
+passante gâchée.
 
-  Si au contraire les instruction du Dockerfile sont bien ordonnées, nous n'avons pas ce problème grâce à
+  Si au contraire les instructions du Dockerfile sont bien ordonnées, nous n'avons pas ce problème grâce à
 la réutilisation du cache de build.
 
 ## Comment faire ?
@@ -178,7 +178,7 @@ RUN apk add git && \
 ENTRYPOINT ["python3", "/app/app.py"]
 {% endhighlight %}
 
-Un seul run qui regroupe donc plusieurs layers en un, pas de layer de cache supprimé par la suite qui traine dans
+Un seul run qui regroupe donc plusieurs layers en un, pas de layer de cache supprimé par la suite qui traîne dans
 l'image finale, sela semble intelligent en apparence.
 
 Mais si on ajoute un commentaire basique dans le code de l'application, absolument toutes les dépendances python et git
@@ -202,13 +202,13 @@ COPY app.py ./
 ENTRYPOINT ["python3", "/app/app.py"]
 {% endhighlight %}
 
-Il y a ici plus de layers. Mais le changement le plus fréquent, celui du code source, n'entraine que la re-copie du code
-et non pas l'install des dépendances, grâce au cache du builder Docker. L'opération prends très peu de temps.
+Il y a ici plus de layers. Mais le changement le plus fréquent, celui du code source, n'entraîne que la re-copie du code
+et non pas l'install des dépendances, grâce au cache du builder Docker. L'opération prend très peu de temps.
 
 L'opération moins fréquente de changement des dépendances python ne provoque pas la réinstallation de git, uniquement
 le `COPY pyproject.toml` (et la suite).
 
-Et seul le changement le plus rare, celui des dépendances d'image/d'OS (git par exemple), entraine le rebuild complet.
+Et seul le changement le plus rare, celui des dépendances d'image/d'OS (git par exemple), entraîne le rebuild complet.
 
 Si l'on possède 2 applications A et B qui dépendent toutes les deux de `python:3.12-alpine` et de `git`, si le début des
 deux Dockerfile est identique, les deux images résultantes vont partager leurs premiers layers. Tout bénef !
