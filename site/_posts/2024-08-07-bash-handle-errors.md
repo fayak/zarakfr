@@ -22,13 +22,13 @@ classes: wide
 
 # Level 0: no error handling
 
-When writing a bash script, by default error are not handled:
+When writing a bash script, by default, errors are not handled:
 
 {% highlight bash %}
 #!/usr/bin/env bash
 # main.sh
 
-false  # is an error, return 1
+false  # is an error, returns 1
 echo "I'm still here !"
 {% endhighlight %}
 
@@ -56,7 +56,8 @@ If the directory we want to remove `temporary-directory` doesn't exists, we inst
 directory instead of stopping the execution.
 
 This example is of course very stupid and could also be avoided by simply writing `rm -rf temporary-directory` directly.
-But think about how many times a command you execute could have desastrous effect on the next ones if it failed ?
+But think about how many times a command you execute could have desastrous effect on the next ones if it failed ? Well
+[cloudflare knows about it](https://blog.cloudflare.com/pipefail-how-a-missing-shell-option-slowed-cloudflare-down/)
 {: .notice--info }
 
 # Level 1: minimal error handling
@@ -154,7 +155,7 @@ function stacktrace() {
     local i=1 line file func
     while read -r line func file < <(caller "$i"); do
         echo "[$i] $file:$line $func(): $(sed -n "$line"p "$file")" 1>&2
-        i=$((i++))
+        i=$((i+1))
     done
 }
 
@@ -284,7 +285,7 @@ So let's add all these requirements and complexify the thing to its maximum !
 
 set -eTEuo pipefail
 
-get_pgid() {
+function get_pgid() {
     cut -d " " -f 5 < "/proc/$$/stat" | tr ' ' '\n'
 }
 
@@ -299,7 +300,7 @@ function stacktrace() {
     local i=1 line file func
     while read -r line func file < <(caller "$i"); do
         echo "[$i] $file:$line $func(): $(sed -n "$line"p "$file")" 1>&2
-        i=$((i++))
+        i=$((i+1))
     done
 }
 
@@ -390,7 +391,7 @@ created, and have a different behaviour.
 <div>
 It is common to think that $$ represents the current PID. This is often true, but sometimes incorrect. The man explicitely states:<br/>
 <i>($$) Expands to the process ID of the shell. In a subshell, it expands to the process ID of the invoking shell, not the subshell. </i><br/>
-`BASHPID` is the real PID of the process.
+<span style="display-style: block; background-color: #EEE;inner-margin: 5px;">BASHPID</span> is the real PID of the process.
 </div>
 {: .notice--info }
 
