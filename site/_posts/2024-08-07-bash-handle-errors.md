@@ -319,7 +319,7 @@ function catch_err() {
         PGID="$(get_pgid)"
         kill -10 -- "$PGID"
         sleep 1
-        kill -15 -- "$PGID"
+        kill -15 -- -"$PGID"
     fi
 }
 
