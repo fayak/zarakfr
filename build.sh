@@ -1,12 +1,16 @@
 #!/usr/bin/env bash
 
-set -xe
+set -xeuo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+JEKYLL_IMAGE="${JEKYLL_IMAGE:-jekyll/jekyll:4.2.2}"
 
 docker run --rm \
 	--name blog-builder \
-	-v $(pwd)/site:/srv/jekyll \
-	-v $(pwd)/bundle:/usr/local/bundle \
+	-v "$ROOT_DIR/site:/srv/jekyll" \
+	-v "$ROOT_DIR/bundle:/usr/local/bundle" \
 	-e JEKYLL_ENV=production \
-	jekyll/jekyll /bin/bash -c "chmod a+w /srv/jekyll/Gemfile.lock && chmod 777 /srv/jekyll && jekyll build"
+	-e BUNDLE_PATH=/usr/local/bundle \
+	"$JEKYLL_IMAGE" /bin/bash -lc "chmod a+w /srv/jekyll/Gemfile.lock && chmod 777 /srv/jekyll && (bundle check || bundle install) && bundle exec jekyll build"
 
-cp -r site/_site/* /srv/www/zarak.fr
+cp -r "$ROOT_DIR"/site/_site/* /srv/www/zarak.fr
